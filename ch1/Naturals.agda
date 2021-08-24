@@ -119,6 +119,16 @@ inc ⟨⟩ = ⟨⟩ I
 inc (x O) = x I
 inc (x I) = (inc x) O
 
+
+to : ℕ → Bin
+to zero = ⟨⟩ O
+to (suc x) = inc (to x)
+
+from : Bin → ℕ
+from ⟨⟩ = zero
+from (x O) = 2 * from x
+from (x I) = 2 * from x + 1
+
 _ : inc ⟨⟩ ≡ ⟨⟩ I
 _ =
   begin
@@ -156,12 +166,3 @@ _ =
   ≡⟨⟩
     ⟨⟩ I O O
   ∎
-
-to : ℕ → Bin
-to zero = ⟨⟩ O
-to (suc x) = inc (to x)
-
-from : Bin → ℕ
-from ⟨⟩ = zero
-from (x O) = 2 * from x
-from (x I) = 2 * from x + 1

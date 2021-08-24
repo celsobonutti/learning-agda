@@ -1,9 +1,9 @@
 module ch1.Induction where
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; cong; sym)
+open Eq using (_≡_; _≢_; refl; cong; sym)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
+open import ch1.Naturals using (ℕ; zero; suc; _+_; _*_; _∸_; _^_; Bin; _O; _I; ⟨⟩; inc; to; from)
 
 +-assoc : ∀ (m n p : ℕ) → (m + n) + p ≡ m + (n + p)
 +-assoc zero n p = refl
@@ -129,3 +129,68 @@ open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
 *-comm m (suc n)
   rewrite *-suc m n |
           *-comm m n = refl
+
+∸-zero : ∀ (n : ℕ) → zero ∸ n ≡ zero
+∸-zero zero = refl
+∸-zero (suc n) = refl
+
+∸-+assoc : ∀ (m n p : ℕ) → m ∸ n ∸ p ≡ m ∸ (n + p)
+∸-+assoc m zero p = refl
+∸-+assoc zero (suc n) p rewrite ∸-zero p = refl
+∸-+assoc (suc m) (suc n) p rewrite ∸-+assoc m n p = refl
+
+^-distribˡ-+* : ∀ (m n p : ℕ) → m ^ (n + p) ≡ (m ^ n) * (m ^ p)
+^-distribˡ-+* m zero p rewrite +-identityʳ (m ^ p) = refl
+^-distribˡ-+* m (suc n) p
+  rewrite ^-distribˡ-+* m n p |
+          sym(*-assoc m (m ^ n) (m ^ p)) = refl
+
+*-swap : ∀ (m n p : ℕ) → m * (n * p) ≡ n * (m * p)
+*-swap m n p
+  rewrite sym (*-assoc m n p) |
+          *-comm m n |
+          *-assoc n m p = refl
+
+^-distribʳ-* : ∀ (m n p : ℕ) → (m * n) ^ p ≡ (m ^ p) * (n ^ p)
+^-distribʳ-* m n zero = refl
+^-distribʳ-* m n (suc p)
+  rewrite ^-distribʳ-* m n p |
+          *-assoc m n ((m ^ p) * (n ^ p)) |
+          *-swap n (m ^ p) (n ^ p) |
+          sym (*-assoc m (m ^ p) (n * (n ^ p))) = refl
+
+^-*-assoc : ∀ (m n p : ℕ) → (m ^ n) ^ p ≡ m ^ (n * p)
+^-*-assoc m n zero rewrite *-zeroʳ n = refl
+^-*-assoc m n (suc p)
+  rewrite ^-*-assoc m n p |
+          sym (^-distribˡ-+* m n (n * p)) |
+          sym (*-suc n p) = refl
+
+-- to (from n) ≢ n
+-- Counterexample:
+-- begin
+--   to (from ⟨⟩)
+-- ≡⟨⟩
+--   to zero
+-- ≡⟨⟩
+--   ⟨⟩
+-- ∎
+
+from-inc : ∀ (b : Bin) → from (inc b) ≡ suc (from b)
+from-inc ⟨⟩ = refl
+from-inc (b O)
+  rewrite +-assoc (from b) (from b + 0) 1 |
+          +-comm (from b + 0) 1 |
+          +-suc (from b) (from b + 0) = refl
+from-inc (b I)
+  rewrite from-inc b |
+          +-comm 1 (from b + 0) |
+          +-assoc (from b) 0 1 |
+          sym (+-assoc (from b) (from b) 1) |
+          +-comm (from b) 0 = refl
+
+from-to : ∀ (n : ℕ) → from (to n) ≡ n
+from-to zero = refl
+from-to (suc n)
+  rewrite from-inc (to n) |
+          from-to n = refl
