@@ -60,5 +60,18 @@ data Total (m n : ℕ) : Set where
 ≤-total zero n = forward z≤n
 ≤-total (suc m) zero = flipped z≤n
 ≤-total (suc m) (suc n) with ≤-total m n
-...                         | forward m≤n = forward (s≤s m≤n)
-...                         | flipped n≤m = flipped (s≤s n≤m)
+...                        | forward m≤n = forward (s≤s m≤n)
+...                        | flipped n≤m = flipped (s≤s n≤m)
+
+≤-total' : ∀ (m n : ℕ) → Total m n
+≤-total' zero n = forward z≤n
+≤-total' (suc m) zero = flipped z≤n
+≤-total' (suc m) (suc n) = helper (≤-total' m n)
+  where
+  helper : Total m n → Total (suc m) (suc n)
+  helper (forward m≤n) = forward (s≤s m≤n)
+  helper (flipped n≤m) = flipped (s≤s n≤m)
+
++-monoʳ-≤ : ∀ (n p q : ℕ) → p ≤ q → n + p ≤ n + q
++-monoʳ-≤ zero p q p≤q = p≤q
++-monoʳ-≤ (suc n) p q p≤q = s≤s (+-monoʳ-≤ n p q p≤q)
