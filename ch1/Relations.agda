@@ -161,14 +161,28 @@ trichotomy (suc m) (suc n) with trichotomy m n
 +-mono-< : ∀ (m n p q : ℕ) → m < n → p < q → m + p < n + q
 +-mono-< m n p q m<n p<q = <-trans (+-monoˡ-< m n p m<n) (+-monoʳ-< n p q p<q)
 
-<-suc : ∀ (n : ℕ) → n < suc n
-<-suc zero = z<s
-<-suc (suc n) = s<s (<-suc n)
+≤-suc-trans : ∀ {n m} → m ≤ n → m ≤ suc n
+≤-suc-trans z≤n = z≤n
+≤-suc-trans (s≤s m≤n) = s≤s (≤-suc-trans m≤n)
 
--- <-trans-revisited : ∀ {m n p : ℕ} → m < n → n < p → m < p
--- <-trans-revisited z<s (s<s n<p) = z<s
--- <-trans-revisited (s<s m<n) (s<s n<p) = {!sm<n!}
---   where
---     ssm≤sn = s≤s (<-iff-≤ m<n)
---     sn≤p = <-iff-≤ n<p
---     sm<n = ≤-iff-< (≤-trans ssm≤sn sn≤p)
+<-trans-revisited : ∀ {m n p : ℕ} → m < n → n < p → m < p
+<-trans-revisited {m} {n} {p} m<n n<p = ≤-iff-< sm≤p
+  where
+    sm≤n : suc m ≤ n
+    sm≤n = <-iff-≤ m<n
+    sm≤sn : suc m ≤ suc n
+    sm≤sn = ≤-suc-trans sm≤n
+    sn≤p : suc n ≤ p
+    sn≤p = <-iff-≤ n<p
+    sm≤p : suc m ≤ p
+    sm≤p = ≤-trans sm≤sn sn≤p
+
+data even : ℕ → Set
+data odd : ℕ → Set
+
+data even where
+  zero : even zero
+  suc : ∀ {n : ℕ} → odd n → even (suc n)
+
+data odd where
+  suc : ∀ {n : ℕ} → even n → odd (suc n)
