@@ -1,9 +1,11 @@
 module ch1.Relations where
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; cong)
+open Eq using (_≡_; refl; cong; sym)
+open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
-open import Data.Nat.Properties using (+-comm; +-identityʳ; *-comm)
+open import Data.Nat.Properties using (+-comm; +-identityʳ; *-comm; +-assoc; +-suc)
+open import ch1.Bin using (Bin; inc; to; from; ⟨⟩; _O; _I; from-inc; to-suc)
 
 data _≤_ : ℕ → ℕ → Set where
   z≤n : ∀ {n : ℕ}
@@ -186,3 +188,102 @@ data even where
 
 data odd where
   suc : ∀ {n : ℕ} → even n → odd (suc n)
+
+e+e≡e : ∀ {m n : ℕ} → even m → even n → even (m + n)
+o+e≡o : ∀ {m n : ℕ} → odd m → even n → odd (m + n)
+
+e+e≡e zero en = en
+e+e≡e (suc om) en = suc (o+e≡o om en)
+
+o+e≡o (suc em) en  = suc (e+e≡e em en)
+
++-comm-e : ∀ {m n : ℕ} → even (m + n) → even (n + m)
++-comm-e {m} {n} emn rewrite +-comm m n = emn
+
++-comm-o : ∀ {m n : ℕ} → odd (m + n) → odd (n + m)
++-comm-o {m} {n} omn rewrite +-comm m n = omn
+
+o+o≡e : ∀ {m n : ℕ} → odd m → odd n → even (m + n)
+o+o≡e {suc m} {n} (suc em) on = suc omn
+  where
+    omn : odd (m + n)
+    omn = +-comm-o {n} {m} (o+e≡o on em)
+
+rest : Bin → Bin
+rest ⟨⟩ = ⟨⟩
+rest (r I) = r
+rest (r O) = r
+
+data One : Bin -> Set
+data One where
+  one : One (⟨⟩ I)
+  case-O : ∀ {b : Bin} → One b → One (b O)
+  case-I : ∀ {b : Bin} → One b → One (b I)
+
+data Can : Bin → Set
+data Can where
+  zero : Can (⟨⟩ O)
+  from-one : ∀ {b : Bin} → One b → Can b
+
+one-inc : ∀ {b : Bin} → One b → One (inc b)
+one-inc one = case-O one
+one-inc (case-O b) = case-I b
+one-inc (case-I b) = case-O (one-inc b)
+
+can-inc : ∀ {b : Bin} → Can b → Can (inc b)
+can-inc zero = from-one one
+can-inc (from-one cb) = from-one (one-inc cb)
+
+can-to-n : ∀ (n : ℕ) → Can (to n)
+can-to-n zero = zero
+can-to-n (suc n) = can-inc (can-to-n n)
+
+n+n≡2*n : ∀ (n : ℕ) → n + n ≡ 2 * n
+n+n≡2*n zero = refl
+n+n≡2*n (suc n)
+  rewrite +-identityʳ n = refl
+
+can-id : ∀ {b : Bin} → Can b → to (from b) ≡ b
+can-id zero = refl
+can-id (from-one one) = refl
+can-id {b O} (from-one (case-O x)) = {!!}
+can-id {b I} (from-one (case-I x)) = {!!}
+
+module ≤-Reasoning where
+  infix  1 ≤-begin_
+  infixr 2 _≤⟨⟩_ _≤⟨_⟩_
+  infix  3 _≤∎
+
+  ≤-begin_ : ∀ {x y : ℕ} → x ≤ y → x ≤ y
+  ≤-begin_ x≤y = x≤y
+
+  _≤⟨⟩_ : ∀ (x : ℕ) {y : ℕ} → x ≤ y → x ≤ y
+  x ≤⟨⟩ x≤y = x≤y
+
+  _≤⟨_⟩_ : ∀ (x : ℕ) {y z : ℕ} → x ≤ y → y ≤ z → x ≤ z
+  x ≤⟨ x≤y ⟩ y≤z = ≤-trans x≤y y≤z
+
+  _≤∎ : ∀ (x : ℕ) → x ≤ x
+  x ≤∎ = ≤-refl
+
+open ≤-Reasoning
+
++-monoʳ-≤' : ∀ (n p q : ℕ) → p ≤ q → n + p ≤ n + q
++-monoʳ-≤' zero p q p≤q =
+  ≤-begin
+    zero + p
+  ≤⟨ p≤q ⟩
+    zero + q
+  ≤∎
++-monoʳ-≤' (suc n) p q p≤q =
+  ≤-begin
+    (suc n) + p
+  ≤⟨ s≤s (+-monoʳ-≤' n p q p≤q) ⟩
+    (suc n) + q
+  ≤∎
+
++-monoˡ-<' : ∀ (m n p : ℕ) → m < n → m + p < n + p
++-monoˡ-<' m n p m<n = {!!}
+
++-mono-<' : ∀ (m n p q : ℕ) → m < n → p < q → m + p < n + q
++-mono-<' m n p q m<n p<q = {!!}
