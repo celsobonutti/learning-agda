@@ -2,7 +2,6 @@ module ch1.Relations where
 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong; sym)
-open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
 open import Data.Nat.Properties using (+-comm; +-identityʳ; *-comm; +-assoc; +-suc)
 open import ch1.Bin using (Bin; inc; to; from; ⟨⟩; _O; _I; from-inc; to-suc)
@@ -250,12 +249,12 @@ can-id {b O} (from-one (case-O x)) = {!!}
 can-id {b I} (from-one (case-I x)) = {!!}
 
 module ≤-Reasoning where
-  infix  1 ≤-begin_
-  infixr 2 _≤⟨⟩_ _≤⟨_⟩_
-  infix  3 _≤∎
+  infix  1 begin_
+  infixr 2 _≤⟨⟩_ _≤⟨_⟩_ _≡⟨_⟩_
+  infix  3 _∎
 
-  ≤-begin_ : ∀ {x y : ℕ} → x ≤ y → x ≤ y
-  ≤-begin_ x≤y = x≤y
+  begin_ : ∀ {x y : ℕ} → x ≤ y → x ≤ y
+  begin_ x≤y = x≤y
 
   _≤⟨⟩_ : ∀ (x : ℕ) {y : ℕ} → x ≤ y → x ≤ y
   x ≤⟨⟩ x≤y = x≤y
@@ -263,27 +262,47 @@ module ≤-Reasoning where
   _≤⟨_⟩_ : ∀ (x : ℕ) {y z : ℕ} → x ≤ y → y ≤ z → x ≤ z
   x ≤⟨ x≤y ⟩ y≤z = ≤-trans x≤y y≤z
 
-  _≤∎ : ∀ (x : ℕ) → x ≤ x
-  x ≤∎ = ≤-refl
+  _≡⟨_⟩_ : ∀ (m : ℕ) {n p : ℕ} → m ≡ n → n ≤ p → m ≤ p
+  m ≡⟨ refl ⟩ n≤p = n≤p
+
+  _∎ : ∀ (x : ℕ) → x ≤ x
+  x ∎ = ≤-refl
 
 open ≤-Reasoning
 
 +-monoʳ-≤' : ∀ (n p q : ℕ) → p ≤ q → n + p ≤ n + q
 +-monoʳ-≤' zero p q p≤q =
-  ≤-begin
+  begin
     zero + p
   ≤⟨ p≤q ⟩
     zero + q
-  ≤∎
+  ∎
 +-monoʳ-≤' (suc n) p q p≤q =
-  ≤-begin
+  begin
     (suc n) + p
   ≤⟨ s≤s (+-monoʳ-≤' n p q p≤q) ⟩
     (suc n) + q
-  ≤∎
+  ∎
 
-+-monoˡ-<' : ∀ (m n p : ℕ) → m < n → m + p < n + p
-+-monoˡ-<' m n p m<n = {!!}
 
-+-mono-<' : ∀ (m n p q : ℕ) → m < n → p < q → m + p < n + q
-+-mono-<' m n p q m<n p<q = {!!}
++-monoˡ-≤' : ∀ (m n p : ℕ) → m ≤ n → m + p ≤ n + p
++-monoˡ-≤' m n p m≤n =
+  begin
+    m + p
+  ≡⟨ +-comm m p ⟩
+    p + m
+  ≤⟨ +-monoʳ-≤' p m n m≤n ⟩
+    p + n
+  ≡⟨ +-comm p n ⟩
+    n + p
+  ∎
+
++-mono-≤' : ∀ (m n p q : ℕ) → m ≤ n → p ≤ q → m + p ≤ n + q
++-mono-≤' m n p q m≤n p≤q =
+  begin
+    m + p
+  ≤⟨ +-monoˡ-≤' m n p m≤n ⟩
+    n + p
+  ≤⟨ +-monoʳ-≤' n p q p≤q ⟩
+    n + q
+  ∎
