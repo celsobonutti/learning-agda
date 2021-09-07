@@ -264,7 +264,12 @@ currying =
 ⊎-weak-× : ∀ {A B C : Set} → (A ⊎ B) × C → A ⊎ (B × C)
 ⊎-weak-× ⟨ inj₁ x , x₁ ⟩ = inj₁ x
 ⊎-weak-× ⟨ inj₂ x , x₁ ⟩ = inj₂ ⟨ x , x₁ ⟩
+-- It relates in a sense that we erase either x or x₁ when converting A
+-- hence, from∘to does not hold
 
 ⊎×-implies-×⊎ : ∀ {A B C D : Set} → (A × B) ⊎ (C × D) → (A ⊎ C) × (B ⊎ D)
 ⊎×-implies-×⊎ (inj₁ ⟨ x , x₁ ⟩) = ⟨ inj₁ x , inj₁ x₁ ⟩
 ⊎×-implies-×⊎ (inj₂ ⟨ x , x₁ ⟩) = ⟨ inj₂ x , inj₂ x₁ ⟩
+
+-- The converse doesn't hold, since it implies that the input can be
+-- ⟨ inj₁ x , inj₂ x₁ ⟩, which cannot be represented as (A × B) ⊎ (C × D)

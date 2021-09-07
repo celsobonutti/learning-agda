@@ -242,11 +242,11 @@ n+n≡2*n zero = refl
 n+n≡2*n (suc n)
   rewrite +-identityʳ n = refl
 
-can-id : ∀ {b : Bin} → Can b → to (from b) ≡ b
-can-id zero = refl
-can-id (from-one one) = refl
-can-id {b O} (from-one (case-O x)) = {!!}
-can-id {b I} (from-one (case-I x)) = {!!}
+-- can-id : ∀ {b : Bin} → Can b → to (from b) ≡ b
+-- can-id zero = refl
+-- can-id (from-one one) = refl
+-- can-id {b O} (from-one (case-O x)) = {!!}
+-- can-id {b I} (from-one (case-I x)) = {!!}
 
 module ≤-Reasoning where
   infix  1 begin_
