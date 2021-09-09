@@ -93,3 +93,4 @@ m ≮ n = ¬ (m < n)
 
 em-irrefutable : ∀ {A : Set} → ¬ ¬ (A ⊎ ¬ A)
 em-irrefutable k = k ((inj₂ λ x → k (inj₁ x)))
+
