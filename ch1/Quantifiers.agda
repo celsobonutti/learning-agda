@@ -3,7 +3,6 @@ module ch1.Quantifiers where
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
-open import Function using (_∘_)
 open import Relation.Nullary using (¬_)
 open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
@@ -19,7 +18,7 @@ open import ch1.Isomorphism using (_≃_; extensionality)
   (∀ (x : A) → B x × C x) ≃ (∀ (x : A) → B x) × (∀ (x : A) → C x)
 ∀-distrib-× =
   record
-    { to = λ f → ⟨ proj₁ ∘ f , proj₂ ∘ f ⟩
+    { to = λ f → ⟨ (λ x → proj₁(f x)) , (λ y → proj₂ (f y)) ⟩
     ; from = λ{ ⟨ f , g ⟩ → λ a → ⟨ f a , g a ⟩}
     ; from∘to = λ f → refl
     ; to∘from = λ{ ⟨ f , g ⟩ → refl}
@@ -137,3 +136,36 @@ syntax ∃-syntax (λ x → B) = ∃[ x ] B
                  ; (inj₂ (inj₂ y)) → refl
                  }
     }
+
+data even : ℕ → Set
+data odd : ℕ → Set
+
+data even where
+  even-zero : even zero
+
+  even-suc : ∀ {n : ℕ}
+    → odd n
+    → even (suc n)
+
+data odd where
+  odd-suc : ∀ {n : ℕ}
+    → even n
+    → odd (suc n)
+
+even-∃ : ∀ {n : ℕ} → even n → ∃[ m ] (    m * 2 ≡ n)
+odd-∃  : ∀ {n : ℕ} → odd  n → ∃[ m ] (1 + m * 2 ≡ n)
+
+even-∃ even-zero = ⟨ 0 , refl ⟩
+even-∃ (even-suc o) with odd-∃ o
+...                    | ⟨ m , refl ⟩ = ⟨ suc m , refl ⟩
+
+odd-∃ (odd-suc e)   with even-∃ e
+...                    | ⟨ m , refl ⟩ = ⟨ m , refl ⟩
+
+∃-even : ∀ {n : ℕ} → ∃[ m ] (    m * 2 ≡ n) → even n
+∃-odd  : ∀ {n : ℕ} → ∃[ m ] (1 + m * 2 ≡ n) →  odd n
+
+∃-even ⟨ zero , refl ⟩ = even-zero
+∃-even ⟨ suc m , refl ⟩ = even-suc (∃-odd ⟨ m , refl ⟩)
+
+∃-odd ⟨ m , refl ⟩ = odd-suc (∃-even ⟨ m , refl ⟩)
