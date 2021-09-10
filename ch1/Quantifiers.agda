@@ -1,11 +1,13 @@
 module ch1.Quantifiers where
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl)
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
+open Eq using (_≡_; refl; sym; cong)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _≤_; z≤n; s≤s)
+open import Data.Nat.Properties using (+-comm; +-assoc; +-suc; +-identityʳ)
 open import Relation.Nullary using (¬_)
 open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
+open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
 open import ch1.Isomorphism using (_≃_; extensionality)
 
 ∀-elim : ∀ {A : Set} {B : A → Set}
@@ -169,3 +171,16 @@ odd-∃ (odd-suc e)   with even-∃ e
 ∃-even ⟨ suc m , refl ⟩ = even-suc (∃-odd ⟨ m , refl ⟩)
 
 ∃-odd ⟨ m , refl ⟩ = odd-suc (∃-even ⟨ m , refl ⟩)
+
+
+∃-even' : ∀ {n : ℕ} → ∃[ m ] (    2 * m ≡ n) → even n
+∃-odd'  : ∀ {n : ℕ} → ∃[ m ] (1 + 2 * m ≡ n) →  odd n
+
+∃-even' ⟨ zero , refl ⟩ = even-zero
+∃-even' ⟨ suc m , refl ⟩ = even-suc (∃-odd' ⟨ m , sym(+-suc m (m + zero)) ⟩)
+∃-odd' ⟨ m , refl ⟩ = odd-suc (∃-even' ⟨ m , refl ⟩)
+
+∃-+-≤ : ∀ {x y z : ℕ} → y ≤ z → ∃[ x ] (x + y ≡ z)
+∃-+-≤ {_} {_} {z} z≤n = ⟨ z , +-identityʳ z ⟩
+∃-+-≤ {_} {suc m} (s≤s y≤z) with (∃-+-≤ y≤z)
+...                              | ⟨ x , refl ⟩ = ⟨ x , +-suc x m ⟩
