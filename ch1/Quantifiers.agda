@@ -184,3 +184,25 @@ odd-∃ (odd-suc e)   with even-∃ e
 ∃-+-≤ {_} {_} {z} z≤n = ⟨ z , +-identityʳ z ⟩
 ∃-+-≤ {_} {suc m} (s≤s y≤z) with (∃-+-≤ y≤z)
 ...                              | ⟨ x , refl ⟩ = ⟨ x , +-suc x m ⟩
+
+¬∃≃∀¬ : ∀ {A : Set} {B : A → Set}
+  → (¬ ∃[ x ] B x) ≃ ∀ x → ¬ B x
+¬∃≃∀¬ =
+  record
+    { to = λ ¬∃xy x y → ¬∃xy ⟨ x , y ⟩
+    ; from = λ{¬∃xy ⟨ x , y ⟩ → ¬∃xy x y}
+    ; from∘to = λ{¬∃xy → extensionality-dep λ{ ⟨ x , y ⟩ → refl}}
+    ; to∘from = λ _ → refl
+    }
+
+∃¬-implies-¬∀ : ∀ {A : Set} {B : A → Set}
+  → ∃[ x ] (¬ B x)
+  → ¬ (∀ x → B x)
+∃¬-implies-¬∀ ⟨ x , y ⟩ = λ{f → y (f x)}
+
+{-
+  The converse does not hold because the negation of an universal
+  does not mean that an existential will not hold. In other words,
+  knowing that a property does not hold for _every_ value does not
+  mean that it won't hold for _some_ value.
+-}
