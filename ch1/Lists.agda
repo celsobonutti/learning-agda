@@ -290,5 +290,50 @@ open IsMonoid
 
 foldr-monoid : ∀ {A : Set} (_⊗_ : A → A → A) (e : A) → IsMonoid _⊗_ e →
   ∀ (xs : List A) (y : A) → foldr _⊗_ y xs ≡ foldr _⊗_ e xs ⊗ y
-foldr-monoid f e ⊗-monoid [] y rewrite sym (identityˡ ⊗-monoid y) = {!!}
-foldr-monoid f e ⊗-monoid (x ∷ xs) y = {!!}
+foldr-monoid _⊗_ e ⊗-monoid [] y rewrite identityˡ ⊗-monoid y = refl
+foldr-monoid _⊗_ e ⊗-monoid (x ∷ xs) y
+  rewrite foldr-monoid _⊗_ e ⊗-monoid xs y |
+          sym (assoc ⊗-monoid x (foldr _⊗_ e xs) y) = refl
+
+foldr-monoid-++ : ∀ {A : Set} (_⊗_ : A → A → A) (e : A) → IsMonoid _⊗_ e →
+  ∀ (xs ys : List A) → foldr _⊗_ e (xs ++ ys) ≡ foldr _⊗_ e xs ⊗ foldr _⊗_ e ys
+foldr-monoid-++ _⊗_ e monoid-⊗ xs ys
+  rewrite foldr-++ _⊗_ e xs ys |
+          foldr-monoid _⊗_ e monoid-⊗ xs (foldr _⊗_ e ys) = refl
+
+foldl : ∀ {A B : Set} → (B → A → B) → B → (List A) → B
+foldl _⊗_ e [] = e
+foldl _⊗_ e (x ∷ xs) = foldl _⊗_ (e ⊗ x) xs
+
+foldl-monoid : ∀ {A : Set} (_⊗_ : A → A → A) (e : A) → IsMonoid _⊗_ e →
+  ∀ (xs : List A) (y : A) → foldl _⊗_ y xs ≡ y ⊗ (foldl _⊗_ e xs)
+foldl-monoid _⊗_ e ⊗-monoid [] y rewrite (identityʳ ⊗-monoid y) = refl
+foldl-monoid _⊗_ e ⊗-monoid (x ∷ xs) y =
+  begin
+    foldl _⊗_ (y ⊗ x) xs
+  ≡⟨ foldl-monoid _⊗_ e ⊗-monoid xs (y ⊗ x) ⟩
+    ((y ⊗ x) ⊗ foldl _⊗_ e xs)
+  ≡⟨ assoc ⊗-monoid y x (foldl _⊗_ e xs) ⟩
+    y ⊗ (x ⊗ (foldl _⊗_ e xs))
+  ≡⟨ cong (y ⊗_) (sym (foldl-monoid _⊗_ e ⊗-monoid xs x)) ⟩
+    y ⊗ foldl _⊗_ x xs
+  ≡⟨ cong (λ n → y ⊗ foldl _⊗_ n xs) (sym (identityˡ ⊗-monoid x)) ⟩
+    (y ⊗ foldl _⊗_ (e ⊗ x) xs)
+  ∎
+
+foldr-monoid-foldl : ∀ {A : Set} (_⊗_ : A → A → A) (e : A) → IsMonoid _⊗_ e
+  → foldr _⊗_ e ≡ foldl _⊗_ e
+foldr-monoid-foldl {A} _⊗_ e ⊗-monoid = extensionality helper
+  where
+    helper : (xs : List A) → foldr _⊗_ e xs ≡ foldl _⊗_ e xs
+    helper [] = refl
+    helper (x ∷ xs) =
+      begin
+        foldr _⊗_ e (x ∷ xs)
+      ≡⟨ cong (x ⊗_) (helper xs) ⟩
+        x ⊗ foldl _⊗_ e xs
+      ≡⟨ sym (foldl-monoid _⊗_ e ⊗-monoid xs x) ⟩
+        foldl _⊗_ x xs
+      ≡⟨ cong (λ n → foldl _⊗_ n xs) (sym (identityˡ ⊗-monoid x)) ⟩
+        foldl _⊗_ (e ⊗ x) xs
+      ∎
