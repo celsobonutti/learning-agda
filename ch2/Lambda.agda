@@ -2,6 +2,7 @@ module ch2.Lambda where
 
 open import Data.Bool using (T; not)
 open import Data.Empty using (⊥; ⊥-elim)
+open import Function using (_∘_)
 open import Data.List using (List; _∷_; [])
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Product using (∃-syntax; _×_)
@@ -99,3 +100,32 @@ mul' = μ' * ⇒ ƛ' m ⇒ ƛ' n ⇒
     * = ` "*"
     m = ` "m"
     n = ` "n"
+
+data Value : Term → Set where
+  V-ƛ : ∀ {x N} → Value (ƛ x ⇒ N)
+
+  V-zero : Value `zero
+
+  V-suc : ∀ {V}
+    → Value V
+    → Value (`suc V)
+
+infix 9 _[_:=_]
+infix 9 _⟦¬_⁇_:=_⟧
+_[_:=_] : Term → Id → Term → Term
+
+_⟦¬_⁇_:=_⟧ : {A : Set} → Term → Dec A → Id → Term → Term
+N ⟦¬ yes _ ⁇ y := V ⟧ = N
+N ⟦¬ no  _ ⁇ y := V ⟧ = N [ y := V ]
+
+
+(` x) [ y := V ] with x ≟ y
+... | yes _ = V
+... | no  _ = ` x
+(ƛ x ⇒ N) [ y := V ] = ƛ x ⇒ N ⟦¬ x ≟ y ⁇ y := V ⟧
+(L · M) [ y := V ] = L [ y := V ] · M [ y := V ]
+(`zero) [ y := V ] = `zero
+(`suc M) [ y := V ] = `suc (M [ y := V ])
+(case L [zero⇒ M |suc x ⇒ N ]) [ y := V ] =
+  case L [ y := V ] [zero⇒ M [ y := V ] |suc x ⇒ N ⟦¬ x ≟ y ⁇ y := V ⟧ ]
+(μ x ⇒ N) [ y := V ] = μ x ⇒ N ⟦¬ x ≟ y ⁇ y := V ⟧
