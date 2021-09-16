@@ -5,6 +5,7 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; sym; trans; cong)
 open Eq.≡-Reasoning
 open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; not)
+open import Data.Empty using (⊥-elim)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_; _≤_; s≤s; z≤n)
 open import Data.Nat.Properties using
   (+-assoc; +-identityˡ; +-identityʳ; *-assoc; *-identityˡ; *-identityʳ; +-comm; *-comm)
@@ -422,7 +423,7 @@ Any-++-⇔ xs ys =
   record
     { to = to xs
     ; from = from xs
-    ; from∘to = λ x → {!!}
+    ; from∘to = from∘to xs
     ; to∘from = {!!}
     }
   where
@@ -440,4 +441,9 @@ Any-++-⇔ xs ys =
       → from xs (to xs ¬Pxs) ≡ ¬Pxs
     from∘to [] ¬Pxs = extensionality λ{()}
     from∘to (x ∷ xs) ¬Pxs = extensionality λ{ (here x) → refl
-                                            ; (there y) → {!!} }
+                                            ; (there y) → ⊥-elim (¬Pxs (there y)) }
+
+    to∘from : ∀ {A : Set} {P : A → Set} (xs : List A) → (¬Pxs : All (¬_ ∘ P) xs)
+      → to xs (from xs ¬Pxs) ≡ ¬Pxs
+    to∘from [] [] = refl
+    to∘from (x ∷ xs) (¬Px ∷ ¬Pxs) rewrite to∘from xs ¬Pxs = refl
